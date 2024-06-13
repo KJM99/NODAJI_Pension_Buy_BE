@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record SelectItem(
     UUID userId,
+    Integer round,
     Integer group,
     Integer first,
     Integer second,
@@ -16,6 +17,7 @@ public record SelectItem(
     public SelectedNumber toEntity(){
         return SelectedNumber.builder()
             .userId(userId)
+            .round(round)
             .groupNum(group)
             .first(first)
             .second(second)

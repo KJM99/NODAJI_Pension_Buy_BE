@@ -25,6 +25,9 @@ public class SelectedNumber {
     @Column(name = "USER_ID")
     private UUID userId;
 
+    @Column(name = "ROUND")
+    private Integer round;
+
     @Column(name = "GROUP_NUM")
     private Integer groupNum;
 

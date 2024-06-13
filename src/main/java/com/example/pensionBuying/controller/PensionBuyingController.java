@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/pension")
 public class PensionBuyingController {
 
-    private PensionBuyingService pensionBuyingService;
+    private final PensionBuyingService pensionBuyingService;
 
     @PostMapping("/selection")
     public void selectNumber(@RequestBody SelectItem selectItem) {
