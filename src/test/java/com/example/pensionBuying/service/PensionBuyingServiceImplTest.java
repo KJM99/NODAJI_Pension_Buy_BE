@@ -32,7 +32,7 @@ class PensionBuyingServiceImplTest {
     @Test
     public void testConcurrentTicketing() throws InterruptedException {
         SelectedNumber selectedNumber = SelectedNumber.builder()
-            .userId(UUID.randomUUID())
+            .userId("c9f8eac6")
             .round(1)
             .groupNum(1)
             .first(1)

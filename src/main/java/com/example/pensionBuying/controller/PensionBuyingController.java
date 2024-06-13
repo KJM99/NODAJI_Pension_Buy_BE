@@ -1,5 +1,6 @@
 package com.example.pensionBuying.controller;
 
+import com.example.pensionBuying.domain.dto.request.PurchaseItem;
 import com.example.pensionBuying.domain.dto.request.SelectItem;
 import com.example.pensionBuying.service.PensionBuyingService;
 import java.util.UUID;
@@ -21,11 +22,11 @@ public class PensionBuyingController {
         pensionBuyingService.selectNumber(selectItem);
     }
 
-    @PostMapping("buying")
+    @PostMapping("/buying")
     public void purchaseTicket(
         //Todo: 토큰 들어오면 토큰으로 바꿔줘야함
-        @RequestBody UUID userId, @RequestBody String userEmail, @RequestBody Long balance
+        @RequestBody PurchaseItem purchaseItem
     ) {
-        pensionBuyingService.purchaseTicket(userId, userEmail, balance);
+        pensionBuyingService.purchaseTicket(purchaseItem);
     }
 }
