@@ -23,7 +23,7 @@ public class SelectedNumber {
     private Long selectedNumberId;
 
     @Column(name = "USER_ID")
-    private UUID userId;
+    private String userId;
 
     @Column(name = "ROUND")
     private Integer round;

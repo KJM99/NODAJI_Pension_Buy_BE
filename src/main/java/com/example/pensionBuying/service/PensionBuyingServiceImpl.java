@@ -1,15 +1,19 @@
 package com.example.pensionBuying.service;
 
 import com.example.pensionBuying.aspect.annotation.RedissonLock;
+import com.example.pensionBuying.domain.dto.request.PurchaseItem;
 import com.example.pensionBuying.domain.dto.request.SelectItem;
 import com.example.pensionBuying.domain.entity.PurchasedTickets;
 import com.example.pensionBuying.domain.entity.SelectedNumber;
 import com.example.pensionBuying.domain.repository.PurchasedTicketsRepository;
 import com.example.pensionBuying.domain.repository.SelectedNumberRepository;
+import jakarta.persistence.LockModeType;
+import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,28 +25,47 @@ public class PensionBuyingServiceImpl implements PensionBuyingService {
 
     @Override
     public void selectNumber(SelectItem selectItem) {
+
+        // 이미 선택된 번호 처리
+        List<SelectedNumber> byUserId = selectedNumberRepository.findBySelectedNumber(
+            selectItem.userId(), selectItem.round(), selectItem.group(), selectItem.first(),
+            selectItem.second(), selectItem.third(), selectItem.fourth(), selectItem.fifth(), selectItem.sixth()
+        );
+
+        if(!byUserId.isEmpty()) {
+            throw new IllegalArgumentException("이미 선택된 번호입니다.");
+        }
+
+        // 선택된 번호가 최대 구매 수량 이상일 때 처리
+        List<SelectedNumber> byUserId1 = selectedNumberRepository.findByUserId(selectItem.userId());
+        if(byUserId1.size() > 19){
+            throw new IllegalArgumentException("최대 구매 수량을 초과했습니다.");
+        }
+
         selectedNumberRepository.save(selectItem.toEntity());
     }
 
     @Override
-    public void purchaseTicket(UUID userId, String userEmail, Long balance) {
-        List<SelectedNumber> all = getSelectedNumbers();
+    public void purchaseTicket(PurchaseItem purchaseItem) {
+        List<SelectedNumber> all = getSelectedNumbers(purchaseItem.userId());
+        Long userBalance = purchaseItem.balance();
 
         if (all.isEmpty()) {
-            throw new RuntimeException("No selected numbers found");
+            throw new RuntimeException("선택된 번호가 없습니다.");
         }
 
-        if((all.size()*1000L) > balance) {
-            throw new RuntimeException("Not enough balance");
+        if((all.size()*1000L) > purchaseItem.balance()) {
+            throw new RuntimeException("잔액이 부족합니다.");
         }
 
         //Todo: 이미 구매한 티켓 처리 해줘야함
         for (SelectedNumber selectedNumber : all) {
-            redissonTicketing(userEmail, balance, selectedNumber);
+            redissonTicketing(purchaseItem.userEmail(), userBalance, selectedNumber);
+            userBalance -= 1000L;
         }
 
         //구매가 진행되면 임시테이블 데이터 날리기
-        deleteSelectedNumbers();
+        deleteSelectedNumbers(purchaseItem.userId());
     }
 
     public void ticketing(String userEmail, Long balance, SelectedNumber selectedNumber) {
@@ -96,15 +119,16 @@ public class PensionBuyingServiceImpl implements PensionBuyingService {
                 .sixth(selectedNumber.getSixth())
                 .createAt(LocalDateTime.now())
                 .build();
+
         purchasedTicketsRepository.save(ticket);
     }
 
 
-    private List<SelectedNumber> getSelectedNumbers() {
-        return selectedNumberRepository.findAll();
+    private List<SelectedNumber> getSelectedNumbers(String userId) {
+        return selectedNumberRepository.findByUserId(userId);
     }
 
-    private void deleteSelectedNumbers() {
-        selectedNumberRepository.deleteAll();
+    private void deleteSelectedNumbers(String userId) {
+        selectedNumberRepository.deleteAll(selectedNumberRepository.findByUserId(userId));
     }
 }

@@ -4,7 +4,7 @@ import com.example.pensionBuying.domain.entity.SelectedNumber;
 import java.util.UUID;
 
 public record SelectItem(
-    UUID userId,
+    String userId,
     Integer round,
     Integer group,
     Integer first,

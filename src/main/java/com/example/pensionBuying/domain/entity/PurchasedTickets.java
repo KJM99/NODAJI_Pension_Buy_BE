@@ -30,7 +30,7 @@ public class PurchasedTickets {
     private Integer round;
 
     @Column(name = "USER_ID")
-    private UUID userId;
+    private String userId;
 
     @Column(name = "USER_EMAIL")
     private String userEmail;
@@ -62,8 +62,8 @@ public class PurchasedTickets {
     @Column(name = "CREATE_AT")
     private LocalDateTime createAt;
 
-    @Column(name = "QUANTITY") @Setter
-    private Long quantity = 1L;
+    // @Column(name = "QUANTITY") @Setter
+    // private Long quantity = 1L;
 
     // public static PurchasedTickets create() {
     //     PurchasedTickets entity = new PurchasedTickets();
@@ -71,8 +71,8 @@ public class PurchasedTickets {
     //     return entity;
     // }
 
-    public void purchased(){
-        long q = this.quantity;
-        this.quantity = q == 1L ? q : 0L;
-    }
+    // public void purchased(){
+    //     long q = this.quantity;
+    //     this.quantity = q == 1L ? q : 0L;
+    // }
 }
