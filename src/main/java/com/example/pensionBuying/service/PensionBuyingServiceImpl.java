@@ -16,8 +16,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PensionBuyingServiceImpl implements PensionBuyingService {
 
-    private SelectedNumberRepository selectedNumberRepository;
-    private PurchasedTicketsRepository purchasedTicketsRepository;
+    private final SelectedNumberRepository selectedNumberRepository;
+    private final PurchasedTicketsRepository purchasedTicketsRepository;
 
     @Override
     public void selectNumber(SelectItem selectItem) {

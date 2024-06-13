@@ -59,6 +59,7 @@ class PensionBuyingServiceImplTest {
         executorService.shutdown();
         executorService.awaitTermination(5, TimeUnit.SECONDS);
 
+        System.out.println(selectedNumber.getUserId());
         System.out.println("테스트 완료");
     }
 
