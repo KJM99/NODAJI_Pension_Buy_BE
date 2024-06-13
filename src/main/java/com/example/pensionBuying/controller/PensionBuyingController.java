@@ -22,10 +22,10 @@ public class PensionBuyingController {
     }
 
     @PostMapping("buying")
-    public void purchaseTicket(@RequestBody Integer round,
+    public void purchaseTicket(
         //Todo: 토큰 들어오면 토큰으로 바꿔줘야함
         @RequestBody UUID userId, @RequestBody String userEmail, @RequestBody Long balance
     ) {
-        pensionBuyingService.purchaseTicket(round, userId, userEmail, balance);
+        pensionBuyingService.purchaseTicket(userId, userEmail, balance);
     }
 }

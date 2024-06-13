@@ -8,5 +8,5 @@ public interface PensionBuyingService {
     void selectNumber(SelectItem selectItem);
 
     //Todo: 토큰 들어오면 토큰으로 바꿔줘야함
-    void purchaseTicket(Integer round, UUID userId, String userEmail, Long balance);
+    void purchaseTicket(UUID userId, String userEmail, Long balance);
 }
