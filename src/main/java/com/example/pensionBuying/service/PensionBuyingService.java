@@ -3,6 +3,8 @@ package com.example.pensionBuying.service;
 
 import com.example.pensionBuying.domain.dto.request.PurchaseItem;
 import com.example.pensionBuying.domain.dto.request.SelectItem;
+import com.example.pensionBuying.domain.entity.PurchasedTickets;
+import java.util.List;
 import java.util.UUID;
 
 public interface PensionBuyingService {
@@ -10,4 +12,6 @@ public interface PensionBuyingService {
 
     //Todo: 토큰 들어오면 토큰으로 바꿔줘야함
     void purchaseTicket(PurchaseItem purchaseItem);
+
+    List<PurchasedTickets> getPensionBuyingTickets(Integer round);
 }

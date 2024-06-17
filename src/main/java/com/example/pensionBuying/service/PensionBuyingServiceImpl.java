@@ -24,6 +24,11 @@ public class PensionBuyingServiceImpl implements PensionBuyingService {
     private final PurchasedTicketsRepository purchasedTicketsRepository;
 
     @Override
+    public List<PurchasedTickets> getPensionBuyingTickets(Integer round) {
+        return purchasedTicketsRepository.findByRound(round);
+    }
+
+    @Override
     public void selectNumber(SelectItem selectItem) {
 
         // 이미 선택된 번호 처리

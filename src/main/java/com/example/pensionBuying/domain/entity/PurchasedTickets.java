@@ -62,17 +62,4 @@ public class PurchasedTickets {
     @Column(name = "CREATE_AT")
     private LocalDateTime createAt;
 
-    // @Column(name = "QUANTITY") @Setter
-    // private Long quantity = 1L;
-
-    // public static PurchasedTickets create() {
-    //     PurchasedTickets entity = new PurchasedTickets();
-    //     entity.setQuantity(1L);
-    //     return entity;
-    // }
-
-    // public void purchased(){
-    //     long q = this.quantity;
-    //     this.quantity = q == 1L ? q : 0L;
-    // }
 }

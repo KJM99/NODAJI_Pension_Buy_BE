@@ -1,6 +1,7 @@
 package com.example.pensionBuying.domain.repository;
 
 import com.example.pensionBuying.domain.entity.PurchasedTickets;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -20,4 +21,6 @@ public interface PurchasedTicketsRepository extends JpaRepository<PurchasedTicke
     PurchasedTickets findByTicket(
         Integer round, Integer groupNum, Integer first, Integer second, Integer third,
         Integer fourth, Integer fifth, Integer sixth);
+
+    List<PurchasedTickets> findByRound(Integer round);
 }
