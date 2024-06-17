@@ -9,6 +9,7 @@ import com.example.pensionBuying.domain.repository.PurchasedTicketsRepository;
 import com.example.pensionBuying.domain.repository.SelectedNumberRepository;
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -54,6 +55,13 @@ public class PensionBuyingServiceImpl implements PensionBuyingService {
     public void purchaseTicket(PurchaseItem purchaseItem) {
         List<SelectedNumber> all = getSelectedNumbers(purchaseItem.userId());
         Long userBalance = purchaseItem.balance();
+        LocalDateTime currentTime = LocalDateTime.now();
+        DayOfWeek dayOfWeek = currentTime.getDayOfWeek();
+
+        if ((dayOfWeek == DayOfWeek.WEDNESDAY && currentTime.getHour() >= 22) ||
+            (dayOfWeek == DayOfWeek.THURSDAY && currentTime.getHour() <= 20)) {
+            throw new IllegalArgumentException("지금은 구매할 수 없습니다.");
+        }
 
         if (all.isEmpty()) {
             throw new RuntimeException("선택된 번호가 없습니다.");
