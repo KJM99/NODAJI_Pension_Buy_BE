@@ -13,7 +13,10 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +26,9 @@ public class PensionBuyingServiceImpl implements PensionBuyingService {
 
     private final SelectedNumberRepository selectedNumberRepository;
     private final PurchasedTicketsRepository purchasedTicketsRepository;
+
+    private final RedissonClient redissonClient;
+
 
     @Override
     public List<PurchasedTickets> getPensionBuyingTickets(Integer round) {
@@ -73,7 +79,7 @@ public class PensionBuyingServiceImpl implements PensionBuyingService {
 
         //Todo: 이미 구매한 티켓 처리 해줘야함
         for (SelectedNumber selectedNumber : all) {
-            redissonTicketing(purchaseItem.userEmail(), userBalance, selectedNumber);
+            lockTicketing(purchaseItem.userEmail(), userBalance, selectedNumber);
             userBalance -= 1000L;
         }
 
@@ -93,26 +99,42 @@ public class PensionBuyingServiceImpl implements PensionBuyingService {
         }
     }
 
-    @RedissonLock(value = "#selectedNumber.round + '-' "
-        + "+ #selectedNumber.groupNum + '-' "
-        + "+ #selectedNumber.first + '-' "
-        + "+ #selectedNumber.second + '-' "
-        + "+ #selectedNumber.third + '-' "
-        + "+ #selectedNumber.fourth + '-' "
-        + "+ #selectedNumber.fifth + '-' "
-        + "+ #selectedNumber.sixth")
-    public void redissonTicketing(String userEmail, Long balance, SelectedNumber selectedNumber) {
-        PurchasedTickets ticket = purchasedTicketsRepository.findByTicket(
-            selectedNumber.getRound(), selectedNumber.getGroupNum(), selectedNumber.getFirst(),
-            selectedNumber.getSecond(), selectedNumber.getThird(), selectedNumber.getFourth(),
-            selectedNumber.getFifth(), selectedNumber.getSixth()
-        );
+    public void lockTicketing(String userEmail, Long balance, SelectedNumber selectedNumber) {
+        String lockName = "lock:ticket:" + selectedNumber.getRound() + ":" + selectedNumber.getGroupNum() + ":" +
+            selectedNumber.getFirst() + ":" + selectedNumber.getSecond() + ":" +
+            selectedNumber.getThird() + ":" + selectedNumber.getFourth() + ":" +
+            selectedNumber.getFifth() + ":" + selectedNumber.getSixth();
 
-        if(ticket != null) {
-            throw new IllegalArgumentException("Ticket already exists");
+        RLock lock = redissonClient.getLock(lockName);
+
+        try {
+            // 락을 100ms 동안 기다리고 10초 동안 유지
+            if (lock.tryLock(100, 10000, TimeUnit.MILLISECONDS)) {
+                try {
+                    // Repository에서 티켓 찾기
+                    PurchasedTickets ticket = purchasedTicketsRepository.findByTicket(
+                        selectedNumber.getRound(), selectedNumber.getGroupNum(), selectedNumber.getFirst(),
+                        selectedNumber.getSecond(), selectedNumber.getThird(), selectedNumber.getFourth(),
+                        selectedNumber.getFifth(), selectedNumber.getSixth()
+                    );
+
+                    // 티켓이 존재하지 않을 경우 처리
+                    if(ticket == null) {
+                        extracted(userEmail, balance, selectedNumber);
+                    }
+                } finally {
+                    // 반드시 락을 해제
+                    lock.unlock();
+                }
+            } else {
+                // 락을 획득하지 못했을 경우 처리
+                throw new RuntimeException("티켓팅을 위한 락 획득 실패");
+            }
+        } catch (InterruptedException e) {
+            // 인터럽트 예외 처리
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("스레드가 인터럽트되었습니다", e);
         }
-
-        extracted(userEmail, balance, selectedNumber);
     }
 
     private void extracted(String userEmail, Long balance,
