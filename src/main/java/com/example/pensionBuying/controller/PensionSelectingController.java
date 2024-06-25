@@ -4,11 +4,10 @@ import com.example.pensionBuying.domain.dto.request.PurchaseItemRequest;
 import com.example.pensionBuying.domain.dto.request.SelectItemRequest;
 import com.example.pensionBuying.domain.dto.response.SelectItemResponse;
 import com.example.pensionBuying.domain.entity.PurchasedTickets;
-// import com.example.pensionBuying.global.util.TokenInfo;
 import com.example.pensionBuying.service.PensionBuyingService;
+import com.example.pensionBuying.service.PensionSelectingService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-// import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,24 +28,26 @@ import org.springframework.web.bind.annotation.RestController;
     RequestMethod.DELETE,
     RequestMethod.PUT,
     RequestMethod.OPTIONS}, allowedHeaders = "*")
-@RequestMapping("/api/v1/pension/purchased")
-public class PensionBuyingController {
+@RequestMapping("/api/v1/pension/selected")
+public class PensionSelectingController {
 
-    private final PensionBuyingService pensionBuyingService;
+    private final PensionSelectingService pensionSelectingService;
 
     @GetMapping
-    public List<PurchasedTickets> getPensionBuyingTickets(
-        @RequestParam Integer round
-    ) {
-        return pensionBuyingService.getPensionBuyingTickets(round);
+    public List<SelectItemResponse> getPensionSelectingTickets(
+        @RequestParam String userId /*@AuthenticationPrincipal TokenInfo tokenInfo*/) {
+        // return pensionBuyingService.getPensionSelectingTickets(tokenInfo);
+        return pensionSelectingService.getPensionSelectingTickets(userId);
     }
 
     @PostMapping
-    public void purchaseTicket(
-        //Todo: 토큰 들어오면 토큰으로 바꿔줘야함
-        @RequestBody PurchaseItemRequest purchaseItem
-    ) {
-        pensionBuyingService.purchaseTicket(purchaseItem);
+    public void selectNumber(@RequestBody SelectItemRequest selectItem) {
+        pensionSelectingService.selectNumber(selectItem);
+    }
+
+    @DeleteMapping("{selectedNumberId}")
+    public void deletePensionSelectingTicket(@PathVariable("selectedNumberId") Long selectedNumberId){
+        pensionSelectingService.deleteSelectedTicket(selectedNumberId);
     }
 
 

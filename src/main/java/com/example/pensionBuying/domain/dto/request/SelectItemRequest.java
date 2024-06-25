@@ -1,9 +1,8 @@
 package com.example.pensionBuying.domain.dto.request;
 
 import com.example.pensionBuying.domain.entity.SelectedNumber;
-import java.util.UUID;
 
-public record SelectItem(
+public record SelectItemRequest(
     String userId,
     Integer round,
     Integer group,
