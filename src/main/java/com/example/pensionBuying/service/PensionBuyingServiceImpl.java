@@ -1,6 +1,7 @@
 package com.example.pensionBuying.service;
 
 import com.example.pensionBuying.api.ApiBuying;
+import com.example.pensionBuying.domain.dto.dto.PurchasedTicketDto;
 import com.example.pensionBuying.domain.dto.request.PurchaseItemRequest;
 import com.example.pensionBuying.domain.dto.request.SelectItemRequest;
 import com.example.pensionBuying.domain.dto.response.SelectItemResponse;
@@ -9,8 +10,8 @@ import com.example.pensionBuying.domain.entity.SelectedNumber;
 import com.example.pensionBuying.domain.repository.PurchasedTicketsRepository;
 import com.example.pensionBuying.domain.repository.SelectedNumberRepository;
 // import com.example.pensionBuying.global.util.TokenInfo;
+import com.example.pensionBuying.global.dto.BuyResponseDto;
 import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -86,7 +87,7 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
             throw new RuntimeException("선택된 번호가 없습니다.");
         }
 
-        Object buying = apiBuying.buying(purchaseItem.userId(), "연금복권", (all.size() * 1000L));
+        BuyResponseDto buying = apiBuying.buying(purchaseItem.userId(), "연금복권", (all.size() * 1000L));
 
         System.out.println(buying);
         //Todo: 결과 값이 success 인 경우 구매 진행, 그 외는 분기처리
@@ -98,17 +99,18 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
         deleteSelectedNumbers(purchaseItem.userId());
     }
 
-    // public void ticketing(String userEmail, Long balance, SelectedNumber selectedNumber) {
-    //     PurchasedTickets ticket = purchasedTicketsRepository.findByTicket(
-    //         selectedNumber.getRound(), selectedNumber.getGroupNum(), selectedNumber.getFirst(),
-    //         selectedNumber.getSecond(), selectedNumber.getThird(), selectedNumber.getFourth(),
-    //         selectedNumber.getFifth(), selectedNumber.getSixth()
-    //     );
-    //
-    //     if(ticket == null) {
-    //         purchase(userEmail, balance, selectedNumber);
-    //     }
-    // }
+    // Test 용 ticketing 메소드
+    public void ticketing(SelectedNumber selectedNumber) {
+        PurchasedTickets ticket = purchasedTicketsRepository.findByTicket(
+            selectedNumber.getRound(), selectedNumber.getGroupNum(), selectedNumber.getFirst(),
+            selectedNumber.getSecond(), selectedNumber.getThird(), selectedNumber.getFourth(),
+            selectedNumber.getFifth(), selectedNumber.getSixth()
+        );
+
+        if(ticket == null) {
+            purchase(selectedNumber);
+        }
+    }
 
     public void lockTicketing(SelectedNumber selectedNumber) {
         String lockName = "lock:ticket:" + selectedNumber.getRound() + ":" + selectedNumber.getGroupNum() + ":" +
@@ -148,21 +150,9 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
         }
     }
 
-    //Todo toEntity
     private void purchase(SelectedNumber selectedNumber) {
-        PurchasedTickets ticket =
-            PurchasedTickets.builder()
-                .round(selectedNumber.getRound())
-                .userId(selectedNumber.getUserId())
-                .groupNum(selectedNumber.getGroupNum())
-                .first(selectedNumber.getFirst())
-                .second(selectedNumber.getSecond())
-                .third(selectedNumber.getThird())
-                .fourth(selectedNumber.getFourth())
-                .fifth(selectedNumber.getFifth())
-                .sixth(selectedNumber.getSixth())
-                .createAt(LocalDate.now())
-                .build();
+        PurchasedTicketDto pTicket = new PurchasedTicketDto(selectedNumber);
+        PurchasedTickets ticket = pTicket.toPurchasedTickets(selectedNumber);
 
         purchasedTicketsRepository.save(ticket);
     }
