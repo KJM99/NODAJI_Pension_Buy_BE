@@ -1,6 +1,7 @@
 package com.example.pensionBuying.api;
 
 import com.example.pensionBuying.domain.dto.dto.BuyingDto;
+import com.example.pensionBuying.global.dto.BuyResponseDto;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,9 +18,9 @@ public class ApiBuying {
     public static List<Map<String, Object>> fail = new ArrayList<>();
 
     @Async
-    public Object buying(String userId, String type, Long amount) {
+    public BuyResponseDto buying(String userId, String type, Long amount) {
         BuyingDto dto = new BuyingDto(type, amount);
-        Object buy = null;
+        BuyResponseDto buy = null;
         try {
             buy = feignBuying.buy(userId, dto);
         } catch (Exception e) {
