@@ -1,6 +1,6 @@
 package com.example.pensionBuying.service;
 
-// import com.example.pensionBuying.api.ApiBuying;
+import com.example.pensionBuying.api.ApiBuying;
 import com.example.pensionBuying.domain.dto.request.PurchaseItemRequest;
 import com.example.pensionBuying.domain.dto.request.SelectItemRequest;
 import com.example.pensionBuying.domain.dto.response.SelectItemResponse;
@@ -27,7 +27,7 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
     private final SelectedNumberRepository selectedNumberRepository;
     private final PurchasedTicketsRepository purchasedTicketsRepository;
     private final RedissonClient redissonClient;
-    // private final ApiBuying apiBuying;
+    private final ApiBuying apiBuying;
 
     @Override
     // public List<SelectItemResponse> getPensionSelectingTickets(TokenInfo token) {
@@ -86,9 +86,9 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
             throw new RuntimeException("선택된 번호가 없습니다.");
         }
 
-        // Object buying = apiBuying.buying(purchaseItem.userId(), "연금복권", (all.size() * 1000L));
+        Object buying = apiBuying.buying(purchaseItem.userId(), "연금복권", (all.size() * 1000L));
 
-        // System.out.println(buying);
+        System.out.println(buying);
         //Todo: 결과 값이 success 인 경우 구매 진행, 그 외는 분기처리
         for (SelectedNumber selectedNumber : all) {
             lockTicketing(selectedNumber);
