@@ -11,7 +11,7 @@ public class PensionRoundSchedulerServiceImpl implements PensionRoundSchedulerSe
     public static Integer round = 1;
 
     // @Scheduled(cron = "0 5 10 ? * THU")
-    @Scheduled(cron = "0 */3 * * * *")
+    @Scheduled(cron = "0 */5 * * * *")
     public void pensionRoundScheduler() {
         round += 1;
     }
