@@ -1,5 +1,6 @@
 package com.example.pensionBuying.service;
 
+import com.example.pensionBuying.domain.repository.SelectedNumberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -9,10 +10,12 @@ import org.springframework.stereotype.Service;
 public class PensionRoundSchedulerServiceImpl implements PensionRoundSchedulerService {
 
     public static Integer round = 1;
+    public final SelectedNumberRepository selectedNumberRepository;
 
     // @Scheduled(cron = "0 5 10 ? * THU")
-    @Scheduled(cron = "0 */3 * * * *")
+    @Scheduled(cron = "0 */5 * * * *")
     public void pensionRoundScheduler() {
+        selectedNumberRepository.deleteAll();
         round += 1;
     }
 
