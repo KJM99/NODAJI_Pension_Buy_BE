@@ -1,9 +1,9 @@
 package com.example.pensionBuying.domain.dto.request;
 
 import com.example.pensionBuying.domain.entity.SelectedNumber;
+import com.example.pensionBuying.global.util.TokenInfo;
 
 public record SelectItemRequest(
-    String userId,
     Integer round,
     Integer group,
     Integer first,
@@ -13,7 +13,7 @@ public record SelectItemRequest(
     Integer fifth,
     Integer sixth
 ) {
-    public SelectedNumber toEntity(){
+    public SelectedNumber toEntity(String userId){
         return SelectedNumber.builder()
             .userId(userId)
             .round(round)

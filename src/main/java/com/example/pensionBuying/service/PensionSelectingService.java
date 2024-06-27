@@ -4,13 +4,14 @@ import com.example.pensionBuying.domain.dto.request.PurchaseItemRequest;
 import com.example.pensionBuying.domain.dto.request.SelectItemRequest;
 import com.example.pensionBuying.domain.dto.response.SelectItemResponse;
 import com.example.pensionBuying.domain.entity.PurchasedTickets;
+import com.example.pensionBuying.global.util.TokenInfo;
 import java.util.List;
 
 public interface PensionSelectingService {
-    void selectNumber(SelectItemRequest selectItem);
+    void selectNumber(TokenInfo tokenInfo, SelectItemRequest selectItem);
 
     // List<SelectItemResponse> getPensionSelectingTickets(TokenInfo tokenInfo);
-    List<SelectItemResponse> getPensionSelectingTickets(String userId);
+    List<SelectItemResponse> getPensionSelectingTickets(TokenInfo tokenInfo);
 
     void deleteSelectedTicket(Long selectedNumberId);
 }

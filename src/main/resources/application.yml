@@ -11,3 +11,6 @@ spring:
     show-sql: true
 server:
   port: 8081
+
+token:
+  secret: "guess_secretguess_secretguess_secretguess_secret"

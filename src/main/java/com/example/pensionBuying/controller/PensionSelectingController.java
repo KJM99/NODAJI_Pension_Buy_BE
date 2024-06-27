@@ -4,10 +4,12 @@ import com.example.pensionBuying.domain.dto.request.PurchaseItemRequest;
 import com.example.pensionBuying.domain.dto.request.SelectItemRequest;
 import com.example.pensionBuying.domain.dto.response.SelectItemResponse;
 import com.example.pensionBuying.domain.entity.PurchasedTickets;
+import com.example.pensionBuying.global.util.TokenInfo;
 import com.example.pensionBuying.service.PensionBuyingService;
 import com.example.pensionBuying.service.PensionSelectingService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,14 +37,15 @@ public class PensionSelectingController {
 
     @GetMapping
     public List<SelectItemResponse> getPensionSelectingTickets(
-        @RequestParam String userId /*@AuthenticationPrincipal TokenInfo tokenInfo*/) {
-        // return pensionBuyingService.getPensionSelectingTickets(tokenInfo);
-        return pensionSelectingService.getPensionSelectingTickets(userId);
+        /*@RequestParam String userId*/@AuthenticationPrincipal TokenInfo tokenInfo) {
+        return pensionSelectingService.getPensionSelectingTickets(tokenInfo);
+        // return pensionSelectingService.getPensionSelectingTickets(userId);
     }
 
     @PostMapping
-    public void selectNumber(@RequestBody SelectItemRequest selectItem) {
-        pensionSelectingService.selectNumber(selectItem);
+    public void selectNumber(@AuthenticationPrincipal TokenInfo tokenInfo,
+        @RequestBody SelectItemRequest selectItem) {
+        pensionSelectingService.selectNumber(tokenInfo, selectItem);
     }
 
     @DeleteMapping("{selectedNumberId}")
