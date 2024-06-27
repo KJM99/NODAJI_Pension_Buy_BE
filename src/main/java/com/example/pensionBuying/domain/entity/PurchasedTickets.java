@@ -32,12 +32,6 @@ public class PurchasedTickets {
     @Column(name = "USER_ID")
     private String userId;
 
-    // @Column(name = "USER_EMAIL")
-    // private String userEmail;
-    //
-    // @Column(name = "USER_ACC_BALANCE")
-    // private Long userAccBalance;
-
     @Column(name = "GROUP_NUM")
     private Integer groupNum;
 
@@ -61,5 +55,11 @@ public class PurchasedTickets {
 
     @Column(name = "CREATE_AT")
     private LocalDate createAt;
+
+    @Column(name = "RESULT", nullable = false) @Setter @Builder.Default
+    private Integer result = 0;
+
+    @Column(name = "DRAW_DATE") @Setter
+    private LocalDate drawDate;
 
 }

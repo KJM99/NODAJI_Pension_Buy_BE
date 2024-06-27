@@ -1,6 +1,7 @@
 package com.example.pensionBuying.service;
 
 import com.example.pensionBuying.api.ApiBuying;
+import com.example.pensionBuying.api.ApiMatching;
 import com.example.pensionBuying.domain.dto.dto.PurchasedTicketDto;
 import com.example.pensionBuying.domain.dto.request.PurchaseItemRequest;
 import com.example.pensionBuying.domain.dto.request.SelectItemRequest;
@@ -10,9 +11,12 @@ import com.example.pensionBuying.domain.entity.SelectedNumber;
 import com.example.pensionBuying.domain.repository.PurchasedTicketsRepository;
 import com.example.pensionBuying.domain.repository.SelectedNumberRepository;
 // import com.example.pensionBuying.global.util.TokenInfo;
+import com.example.pensionBuying.exception.PensionBuyingErrorCode;
+import com.example.pensionBuying.exception.PensionBuyingException;
 import com.example.pensionBuying.global.dto.BuyResponseDto;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -29,6 +33,7 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
     private final PurchasedTicketsRepository purchasedTicketsRepository;
     private final RedissonClient redissonClient;
     private final ApiBuying apiBuying;
+    private final ApiMatching apiMatching;
 
     @Override
     // public List<SelectItemResponse> getPensionSelectingTickets(TokenInfo token) {
@@ -69,43 +74,56 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
         // 선택된 번호가 최대 구매 수량 이상일 때 처리
         selectedMaxCheck(selectItem);
 
+        PurchasedTickets byTicket = getByTicket(selectItem.toEntity());
+        if(byTicket != null) {
+            throw new PensionBuyingException(PensionBuyingErrorCode.PURCHASE_DUPLICATED);
+        }
+
+        checkedDate();
+
         selectedNumberRepository.save(selectItem.toEntity());
     }
 
     @Override
     public void purchaseTicket(PurchaseItemRequest purchaseItem) {
-        List<SelectedNumber> all = getSelectedNumbers(purchaseItem.userId());
-        LocalDateTime currentTime = LocalDateTime.now();
-        DayOfWeek dayOfWeek = currentTime.getDayOfWeek();
+        List<PurchasedTickets> tmpList = new ArrayList<>();
+        String userId = purchaseItem.userId();
+        List<SelectedNumber> all = getSelectedNumbers(userId);
 
-        if ((dayOfWeek == DayOfWeek.WEDNESDAY && currentTime.getHour() >= 22) ||
-            (dayOfWeek == DayOfWeek.THURSDAY && currentTime.getHour() <= 20)) {
-            throw new IllegalArgumentException("지금은 구매할 수 없습니다.");
-        }
+        checkedDate();
 
         if (all.isEmpty()) {
-            throw new RuntimeException("선택된 번호가 없습니다.");
+            throw new PensionBuyingException(PensionBuyingErrorCode.SElECT_NO_TICKET);
         }
 
         BuyResponseDto buying = apiBuying.buying(purchaseItem.userId(), "연금복권", (all.size() * 1000L));
-
         System.out.println(buying);
-        //Todo: 결과 값이 success 인 경우 구매 진행, 그 외는 분기처리
+
         for (SelectedNumber selectedNumber : all) {
             lockTicketing(selectedNumber);
         }
+        //Todo: 결과 값이 success 인 경우 구매 진행, 그 외는 분기처리
+        // if(buying.status().equals("success")){
+        // } else {
+        //     throw new PensionBuyingException(PensionBuyingErrorCode.NOT_ENOUGH_MONEY);
+        // }
 
         //구매가 진행되면 임시테이블 데이터 날리기
         deleteSelectedNumbers(purchaseItem.userId());
     }
 
+    private static void checkedDate() {
+        LocalDateTime currentTime = LocalDateTime.now();
+        DayOfWeek dayOfWeek = currentTime.getDayOfWeek();
+
+        if ((dayOfWeek == DayOfWeek.THURSDAY && currentTime.getHour() >= 17 && currentTime.getHour() <= 20)) {
+            throw new PensionBuyingException(PensionBuyingErrorCode.TIME_OUT);
+        }
+    }
+
     // Test 용 ticketing 메소드
     public void ticketing(SelectedNumber selectedNumber) {
-        PurchasedTickets ticket = purchasedTicketsRepository.findByTicket(
-            selectedNumber.getRound(), selectedNumber.getGroupNum(), selectedNumber.getFirst(),
-            selectedNumber.getSecond(), selectedNumber.getThird(), selectedNumber.getFourth(),
-            selectedNumber.getFifth(), selectedNumber.getSixth()
-        );
+        PurchasedTickets ticket = getByTicket(selectedNumber);
 
         if(ticket == null) {
             purchase(selectedNumber);
@@ -125,11 +143,7 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
             if (lock.tryLock(100, 10000, TimeUnit.MILLISECONDS)) {
                 try {
                     // Repository에서 티켓 찾기
-                    PurchasedTickets ticket = purchasedTicketsRepository.findByTicket(
-                        selectedNumber.getRound(), selectedNumber.getGroupNum(), selectedNumber.getFirst(),
-                        selectedNumber.getSecond(), selectedNumber.getThird(), selectedNumber.getFourth(),
-                        selectedNumber.getFifth(), selectedNumber.getSixth()
-                    );
+                    PurchasedTickets ticket = getByTicket(selectedNumber);
 
                     // 티켓이 존재하지 않을 경우 처리
                     if(ticket == null) {
@@ -148,6 +162,14 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
             Thread.currentThread().interrupt();
             throw new RuntimeException("스레드가 인터럽트되었습니다", e);
         }
+    }
+
+    private PurchasedTickets getByTicket(SelectedNumber selectedNumber) {
+        return purchasedTicketsRepository.findByTicket(
+            selectedNumber.getRound(), selectedNumber.getGroupNum(), selectedNumber.getFirst(),
+            selectedNumber.getSecond(), selectedNumber.getThird(), selectedNumber.getFourth(),
+            selectedNumber.getFifth(), selectedNumber.getSixth()
+        );
     }
 
     private void purchase(SelectedNumber selectedNumber) {
@@ -170,7 +192,7 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
         List<SelectedNumber> byUserId1 = selectedNumberRepository.findByUserId(selectItem.userId());
         // if(byUserId1.size() > 19){
         if(byUserId1.size() > 200){
-            throw new IllegalArgumentException("최대 구매 수량을 초과했습니다.");
+            throw new PensionBuyingException(PensionBuyingErrorCode.MAX_SELECTED);
         }
     }
 
@@ -181,7 +203,7 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
         );
 
         if(!byUserId.isEmpty()) {
-            throw new IllegalArgumentException("이미 선택된 번호입니다.");
+            throw new PensionBuyingException(PensionBuyingErrorCode.SELECT_DUPLICATED);
         }
     }
 }
