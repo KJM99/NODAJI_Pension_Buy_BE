@@ -9,8 +9,20 @@ spring:
     hibernate:
       ddl-auto: create
     show-sql: true
+  data:
+    redis:
+      host: ${redis}
 server:
   port: 8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
 
 token:
   secret: "guess_secretguess_secretguess_secretguess_secret"

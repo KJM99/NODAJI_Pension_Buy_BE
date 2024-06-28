@@ -78,7 +78,7 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
         }
 
         checkedDate();
-        System.out.println(tokenInfo.userId());
+
         selectedNumberRepository.save(selectItem.toEntity(tokenInfo.userId()));
     }
 
@@ -94,17 +94,16 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
             throw new PensionBuyingException(PensionBuyingErrorCode.SElECT_NO_TICKET);
         }
 
-        BuyResponseDto buying = apiBuying.buying(userId, "연금복권", (all.size() * 1000L));
-        System.out.println(buying);
+        BuyResponseDto buying = apiBuying.buying(tokenInfo.userId(), "연금복권", (all.size() * 1000L));
+        System.out.println(tokenInfo.userId() + " " + buying + " " + (all.size() * 1000L));
+        //Todo: 결과 값이 success 인 경우 구매 진행, 그 외는 분기처리
+        if(buying == null) {
+            throw new PensionBuyingException(PensionBuyingErrorCode.NOT_ENOUGH_MONEY);
+        }
 
         for (SelectedNumber selectedNumber : all) {
             lockTicketing(selectedNumber);
         }
-        //Todo: 결과 값이 success 인 경우 구매 진행, 그 외는 분기처리
-        // if(buying.status().equals("success")){
-        // } else {
-        //     throw new PensionBuyingException(PensionBuyingErrorCode.NOT_ENOUGH_MONEY);
-        // }
 
         //구매가 진행되면 임시테이블 데이터 날리기
         deleteSelectedNumbers(userId);
@@ -114,7 +113,7 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
         LocalDateTime currentTime = LocalDateTime.now();
         DayOfWeek dayOfWeek = currentTime.getDayOfWeek();
 
-        if ((dayOfWeek == DayOfWeek.WEDNESDAY && currentTime.getHour() >= 17 && currentTime.getHour() <= 20)) {
+        if ((dayOfWeek == DayOfWeek.THURSDAY && currentTime.getHour() >= 17 && currentTime.getHour() <= 20)) {
             throw new PensionBuyingException(PensionBuyingErrorCode.TIME_OUT);
         }
     }

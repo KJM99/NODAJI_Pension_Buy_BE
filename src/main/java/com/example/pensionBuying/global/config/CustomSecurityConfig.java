@@ -21,7 +21,7 @@ public class CustomSecurityConfig {
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         http.authorizeHttpRequests(req->
-            req.requestMatchers("/api/v1/pension/**")
+            req.requestMatchers("/api/v1/pension/**","/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated()
