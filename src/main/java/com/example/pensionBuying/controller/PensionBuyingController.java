@@ -5,10 +5,12 @@ import com.example.pensionBuying.domain.dto.request.SelectItemRequest;
 import com.example.pensionBuying.domain.dto.response.SelectItemResponse;
 import com.example.pensionBuying.domain.entity.PurchasedTickets;
 // import com.example.pensionBuying.global.util.TokenInfo;
+import com.example.pensionBuying.global.util.TokenInfo;
 import com.example.pensionBuying.service.PensionBuyingService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 // import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,9 +46,10 @@ public class PensionBuyingController {
     @PostMapping
     public void purchaseTicket(
         //Todo: 토큰 들어오면 토큰으로 바꿔줘야함
-        @RequestBody PurchaseItemRequest purchaseItem
+        @AuthenticationPrincipal TokenInfo tokenInfo
+        // @RequestBody PurchaseItemRequest purchaseItem
     ) {
-        pensionBuyingService.purchaseTicket(purchaseItem);
+        pensionBuyingService.purchaseTicket(tokenInfo);
     }
 
 

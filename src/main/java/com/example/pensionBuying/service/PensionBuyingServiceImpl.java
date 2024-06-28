@@ -1,7 +1,6 @@
 package com.example.pensionBuying.service;
 
 import com.example.pensionBuying.api.ApiBuying;
-import com.example.pensionBuying.api.ApiMatching;
 import com.example.pensionBuying.domain.dto.dto.PurchasedTicketDto;
 import com.example.pensionBuying.domain.dto.request.PurchaseItemRequest;
 import com.example.pensionBuying.domain.dto.request.SelectItemRequest;
@@ -10,7 +9,7 @@ import com.example.pensionBuying.domain.entity.PurchasedTickets;
 import com.example.pensionBuying.domain.entity.SelectedNumber;
 import com.example.pensionBuying.domain.repository.PurchasedTicketsRepository;
 import com.example.pensionBuying.domain.repository.SelectedNumberRepository;
-// import com.example.pensionBuying.global.util.TokenInfo;
+import com.example.pensionBuying.global.util.TokenInfo;
 import com.example.pensionBuying.exception.PensionBuyingErrorCode;
 import com.example.pensionBuying.exception.PensionBuyingException;
 import com.example.pensionBuying.global.dto.BuyResponseDto;
@@ -33,13 +32,12 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
     private final PurchasedTicketsRepository purchasedTicketsRepository;
     private final RedissonClient redissonClient;
     private final ApiBuying apiBuying;
-    private final ApiMatching apiMatching;
 
     @Override
-    // public List<SelectItemResponse> getPensionSelectingTickets(TokenInfo token) {
-    public List<SelectItemResponse> getPensionSelectingTickets(String userId) {
-        // List<SelectedNumber> byUserId = selectedNumberRepository.findByUserId(token.userId());
-        List<SelectedNumber> byUserId = selectedNumberRepository.findByUserId(userId);
+    public List<SelectItemResponse> getPensionSelectingTickets(TokenInfo token) {
+    // public List<SelectItemResponse> getPensionSelectingTickets(String userId) {
+        List<SelectedNumber> byUserId = selectedNumberRepository.findByUserId(token.userId());
+        // List<SelectedNumber> byUserId = selectedNumberRepository.findByUserId(userId);
         return byUserId.stream()
             .map(number -> new SelectItemResponse(
                 number.getSelectedNumberId(),
@@ -67,27 +65,27 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
     }
 
     @Override
-    public void selectNumber(SelectItemRequest selectItem) {
+    public void selectNumber(TokenInfo tokenInfo, SelectItemRequest selectItem) {
         // 이미 선택된 번호 처리
-        selectedTicketCheck(selectItem);
+        selectedTicketCheck(tokenInfo.userId(), selectItem);
 
         // 선택된 번호가 최대 구매 수량 이상일 때 처리
-        selectedMaxCheck(selectItem);
+        selectedMaxCheck(tokenInfo.userId(), selectItem);
 
-        PurchasedTickets byTicket = getByTicket(selectItem.toEntity());
+        PurchasedTickets byTicket = getByTicket(selectItem.toEntity(tokenInfo.userId()));
         if(byTicket != null) {
             throw new PensionBuyingException(PensionBuyingErrorCode.PURCHASE_DUPLICATED);
         }
 
         checkedDate();
 
-        selectedNumberRepository.save(selectItem.toEntity());
+        selectedNumberRepository.save(selectItem.toEntity(tokenInfo.userId()));
     }
 
     @Override
-    public void purchaseTicket(PurchaseItemRequest purchaseItem) {
+    public void purchaseTicket(TokenInfo tokenInfo) {
         List<PurchasedTickets> tmpList = new ArrayList<>();
-        String userId = purchaseItem.userId();
+        String userId = tokenInfo.userId();
         List<SelectedNumber> all = getSelectedNumbers(userId);
 
         checkedDate();
@@ -96,20 +94,19 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
             throw new PensionBuyingException(PensionBuyingErrorCode.SElECT_NO_TICKET);
         }
 
-        BuyResponseDto buying = apiBuying.buying(purchaseItem.userId(), "연금복권", (all.size() * 1000L));
-        System.out.println(buying);
+        BuyResponseDto buying = apiBuying.buying(tokenInfo.userId(), "연금복권", (all.size() * 1000L));
+        System.out.println(tokenInfo.userId() + " " + buying + " " + (all.size() * 1000L));
+        //Todo: 결과 값이 success 인 경우 구매 진행, 그 외는 분기처리
+        if(buying == null) {
+            throw new PensionBuyingException(PensionBuyingErrorCode.NOT_ENOUGH_MONEY);
+        }
 
         for (SelectedNumber selectedNumber : all) {
             lockTicketing(selectedNumber);
         }
-        //Todo: 결과 값이 success 인 경우 구매 진행, 그 외는 분기처리
-        // if(buying.status().equals("success")){
-        // } else {
-        //     throw new PensionBuyingException(PensionBuyingErrorCode.NOT_ENOUGH_MONEY);
-        // }
 
         //구매가 진행되면 임시테이블 데이터 날리기
-        deleteSelectedNumbers(purchaseItem.userId());
+        deleteSelectedNumbers(userId);
     }
 
     private static void checkedDate() {
@@ -188,17 +185,17 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
         selectedNumberRepository.deleteAll(selectedNumberRepository.findByUserId(userId));
     }
 
-    private void selectedMaxCheck(SelectItemRequest selectItem) {
-        List<SelectedNumber> byUserId1 = selectedNumberRepository.findByUserId(selectItem.userId());
-        // if(byUserId1.size() > 19){
-        if(byUserId1.size() > 200){
+    private void selectedMaxCheck(String userId, SelectItemRequest selectItem) {
+        List<SelectedNumber> byUserId1 = selectedNumberRepository.findByUserId(userId);
+        if(byUserId1.size() > 19){
+        // if(byUserId1.size() > 200){
             throw new PensionBuyingException(PensionBuyingErrorCode.MAX_SELECTED);
         }
     }
 
-    private void selectedTicketCheck(SelectItemRequest selectItem) {
+    private void selectedTicketCheck(String userId, SelectItemRequest selectItem) {
         List<SelectedNumber> byUserId = selectedNumberRepository.findBySelectedNumber(
-            selectItem.userId(), selectItem.round(), selectItem.group(), selectItem.first(),
+            userId, selectItem.round(), selectItem.group(), selectItem.first(),
             selectItem.second(), selectItem.third(), selectItem.fourth(), selectItem.fifth(), selectItem.sixth()
         );
 
