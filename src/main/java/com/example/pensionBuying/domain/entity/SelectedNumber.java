@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +24,10 @@ public class SelectedNumber {
     private Long selectedNumberId;
 
     @Column(name = "USER_ID")
-    private UUID userId;
+    private String userId;
+
+    @Column(name = "ROUND")
+    private Integer round;
 
     @Column(name = "GROUP_NUM")
     private Integer groupNum;

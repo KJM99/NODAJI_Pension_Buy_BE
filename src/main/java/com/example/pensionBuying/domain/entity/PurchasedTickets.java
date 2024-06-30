@@ -6,12 +6,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -29,13 +30,7 @@ public class PurchasedTickets {
     private Integer round;
 
     @Column(name = "USER_ID")
-    private UUID userId;
-
-    @Column(name = "USER_EMAIL")
-    private String userEmail;
-
-    @Column(name = "USER_ACC_BALANCE")
-    private Long userAccBalance;
+    private String userId;
 
     @Column(name = "GROUP_NUM")
     private Integer groupNum;
@@ -59,5 +54,12 @@ public class PurchasedTickets {
     private Integer sixth;
 
     @Column(name = "CREATE_AT")
-    private LocalDateTime createAt;
+    private LocalDate createAt;
+
+    @Column(name = "RESULT", nullable = false) @Setter @Builder.Default
+    private Integer result = 0;
+
+    @Column(name = "DRAW_DATE") @Setter
+    private LocalDate drawDate;
+
 }
