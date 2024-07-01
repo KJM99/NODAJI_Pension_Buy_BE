@@ -1,7 +1,6 @@
 package com.example.pensionBuying.domain.dto.request;
 
 import com.example.pensionBuying.domain.entity.SelectedNumber;
-import com.example.pensionBuying.global.util.TokenInfo;
 
 public record SelectItemRequest(
     Integer round,

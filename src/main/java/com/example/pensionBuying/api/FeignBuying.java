@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "feignPayment", url = "192.168.0.10:8083")
+@FeignClient(name = "feignPayment", url = "34.46.237.231:30421")
 public interface FeignBuying {
 
     @PutMapping("/api/v1/payments/{userId}")
