@@ -13,7 +13,7 @@ public class PensionRoundSchedulerServiceImpl implements PensionRoundSchedulerSe
     public final SelectedNumberRepository selectedNumberRepository;
 
     // @Scheduled(cron = "0 5 10 ? * THU")
-    @Scheduled(cron = "0 */10 * * * *")
+    @Scheduled(cron = "0 */20 * * * *")
     public void pensionRoundScheduler() {
         selectedNumberRepository.deleteAll();
         round += 1;
