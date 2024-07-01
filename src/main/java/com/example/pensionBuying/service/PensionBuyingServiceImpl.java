@@ -2,7 +2,6 @@ package com.example.pensionBuying.service;
 
 import com.example.pensionBuying.api.ApiBuying;
 import com.example.pensionBuying.domain.dto.dto.PurchasedTicketDto;
-import com.example.pensionBuying.domain.dto.request.PurchaseItemRequest;
 import com.example.pensionBuying.domain.dto.request.SelectItemRequest;
 import com.example.pensionBuying.domain.dto.response.SelectItemResponse;
 import com.example.pensionBuying.domain.entity.PurchasedTickets;
@@ -35,9 +34,7 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
 
     @Override
     public List<SelectItemResponse> getPensionSelectingTickets(TokenInfo token) {
-    // public List<SelectItemResponse> getPensionSelectingTickets(String userId) {
         List<SelectedNumber> byUserId = selectedNumberRepository.findByUserId(token.userId());
-        // List<SelectedNumber> byUserId = selectedNumberRepository.findByUserId(userId);
         return byUserId.stream()
             .map(number -> new SelectItemResponse(
                 number.getSelectedNumberId(),
@@ -96,7 +93,7 @@ public class PensionBuyingServiceImpl implements PensionBuyingService, PensionSe
 
         BuyResponseDto buying = apiBuying.buying(tokenInfo.userId(), "연금복권", (all.size() * 1000L));
         System.out.println(tokenInfo.userId() + " " + buying + " " + (all.size() * 1000L));
-        //Todo: 결과 값이 success 인 경우 구매 진행, 그 외는 분기처리
+
         if(buying == null) {
             throw new PensionBuyingException(PensionBuyingErrorCode.NOT_ENOUGH_MONEY);
         }
