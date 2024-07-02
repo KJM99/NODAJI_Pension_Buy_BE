@@ -29,10 +29,9 @@ https://github.com/encore-full-stack-5/DH_lottery
 
 
 ## Diagram
-</br>
 
 ### Architecture Diagram
-![구매서버](https://github.com/encore-full-stack-5/NODAJI_Pension_Buy_BE/assets/92596263/59e86811-de82-4f4a-8e08-898e8b6ff300)
+![구매서버](https://github.com/KJM99/NODAJI_Pension_Buy_BE/assets/92596263/4b6000d0-6ab5-4e6a-8948-ae28c5635051)
 
 </br>
 
